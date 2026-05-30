@@ -1,0 +1,6 @@
+2026-05-16 03:03:01.062402+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "CANDIDAT" not found (this database is empty); SQL statement:
+select count(*) from candidat c1_0 [42104-240]
+2026-05-16 03:04:47.522409+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "CANDIDAT" not found (this database is empty); SQL statement:
+select count(*) from candidat c1_0 [42104-240]
