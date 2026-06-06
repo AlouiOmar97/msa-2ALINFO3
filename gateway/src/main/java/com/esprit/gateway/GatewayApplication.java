@@ -20,6 +20,9 @@ public class GatewayApplication {
                 .route("Candidat",r->r.path("/candidats/**")
                       //  .uri("http://localhost:8081") )
                           .uri("lb://candidat") )
+                .route("Job",r->r.path("/jobs/**")
+                        //  .uri("http://localhost:8081") )
+                        .uri("lb://job") )
                 .build();
     }
 

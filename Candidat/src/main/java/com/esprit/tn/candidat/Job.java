@@ -9,5 +9,8 @@ import lombok.NoArgsConstructor;
 public class Job {
     private  int id;
     private String service;
-    private boolean etat;
+    //private boolean etat;
+    private String title;
+    private String description;
+    private Boolean available;
 }

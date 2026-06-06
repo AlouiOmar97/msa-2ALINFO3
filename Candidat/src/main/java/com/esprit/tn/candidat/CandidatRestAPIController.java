@@ -32,6 +32,40 @@ class CandidatRestAPIController {
         return dataSource.getConnection().getMetaData().getDatabaseProductName();
     }
 
+    @GetMapping("/favorites")
+    public List<JobDTO> getFavoriteJobs() {
+        return candidatService.getFavoriteJobs();
+    }
+
+    @RequestMapping("/jobs")
+    public List<Job> getAllJobs() {
+        return candidatService.getJobs();
+    }
+
+    @RequestMapping("jobs/{id}")
+    public Job getJobById(@PathVariable int id) {
+        return candidatService.getJobById(id);
+    }
+
+    @GetMapping("/{id}/favorite-jobs")
+    public List<Job> getFavoriteJobs(@PathVariable int id) {
+        return candidatService.getFavoriteJobs(id);
+    }
+
+    @PostMapping("/{id}/favorite-jobs/{jobId}")
+    public ResponseEntity<String> saveFavoriteJob(@PathVariable int id, @PathVariable int jobId) {
+        Job job = candidatService.getJobById(jobId);
+        if (job != null) {
+            candidatService.saveFavoriteJob(id, jobId);
+            return ResponseEntity.status(HttpStatus.OK).body("Job saved as favorite successfully.");
+
+        } else {
+            // Gérer le cas où le job n'existe pas
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Job not found with ID: " + jobId);
+        }
+    }
+
     @GetMapping("/list")
     public ResponseEntity<List<Candidat>> getListCandid() {
         List<Candidat> candidats = candidatService.getAll();

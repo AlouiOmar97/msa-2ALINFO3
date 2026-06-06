@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Job {
+public class JobDTO {
     private  int id;
     private String service;
     //private boolean etat;
