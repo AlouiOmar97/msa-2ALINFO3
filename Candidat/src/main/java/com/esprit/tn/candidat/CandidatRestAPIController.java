@@ -1,6 +1,8 @@
 package com.esprit.tn.candidat;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -10,12 +12,22 @@ import javax.sql.DataSource;
 import java.util.List;
 
 @RestController
+@RefreshScope
 @RequestMapping("/candidats")
 class CandidatRestAPIController {
     @Autowired
     private CandidatService candidatService;
     private final DataSource dataSource;
     private String title = "Hello, I'm the candidate MicroService";
+
+    @Value("${welcome.message}")
+    private String welcomeMessage;
+
+    @GetMapping("/welcome")
+    public String welcome() {
+        System.out.println(welcomeMessage);
+        return welcomeMessage;
+    }
 
     CandidatRestAPIController(DataSource dataSource) {
         this.dataSource = dataSource;
