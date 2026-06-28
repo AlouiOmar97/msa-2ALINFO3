@@ -18,7 +18,7 @@ public class SecurityConfig {
                 // Autoriser Swagger et Actuator
                                 .requestMatchers( "/actuator/**").permitAll()
                 // Toutes les autres requêtes nécessitent un token
-                                .anyRequest().authenticated()
+                                .anyRequest().permitAll()
                 )
                 .oauth2ResourceServer(oauth2 ->
                         oauth2.jwt(Customizer.withDefaults()));

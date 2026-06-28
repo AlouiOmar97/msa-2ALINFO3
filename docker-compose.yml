@@ -1,0 +1,122 @@
+version: "3.9"
+
+services:
+
+  mysqldb:
+    image: mysql:5.6
+    container_name: db
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: jobTest
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.1
+    container_name: keycloak
+    restart: unless-stopped
+    command: start-dev --http-port=8080
+    ports:
+      - "8080:8080"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_STRICT: "false"
+    volumes:
+      - ./data/keycloak:/opt/keycloak/data
+
+  eureka-server:
+    build: ./eureka
+    image: aloui97/eureka:1.0
+    container_name: eureka
+    ports:
+      - "8761:8761"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+
+  config-server:
+    build: ./config-server
+    image: aloui97/configserver:1.0
+    container_name: configServer
+    ports:
+      - "8888:8888"
+    depends_on:
+      - eureka-server
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+
+  job:
+    build: ./job
+    image: aloui97/job:1.0
+    container_name: job
+    ports:
+      - "8083:8083"
+    depends_on:
+      - mysqldb
+      - rabbitmq
+      - config-server
+      - eureka-server
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/jobTest?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+
+  candidat:
+    build: ./candidat
+    image: aloui97/candidat:1.0
+    container_name: candidat
+    ports:
+      - "8081:8081"
+    depends_on:
+      - config-server
+      - eureka-server
+      - rabbitmq
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+
+  api-gateway:
+    build: ./gateway
+    image: aloui97/apigateway:1.0
+    container_name: gateway
+    ports:
+      - "8880:8880"
+    depends_on:
+      - eureka-server
+      - config-server
+      - job
+      - candidat
+      - keycloak
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/Job_Board_Realm_ApprocheA
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/Job_Board_Realm_ApprocheA/protocol/openid-connect/certs
+
+volumes:
+  mysql_data:
